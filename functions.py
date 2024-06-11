@@ -14,22 +14,65 @@ from mysql.connector.constants import ClientFlag
 from config import *
 
 #-------------------------------------------------------------------------------------------------
+# Member Functions
+def incrementCounter():
+    global master_email_counter
+    master_email_counter += 1
+
+def breakLineSpecial(end: bool = True):
+    print("=====================================================================================================")
+    if end: print()
+
+def breakLine(end: bool = True):
+    print("*************************************************************************************")
+    if end: print()
+
+def logStart(script_name):
+    breakLineSpecial(False)
+    breakLineSpecial(False)
+    breakLineSpecial(False)
+    start_time = datetime.datetime.now()
+    process_id = os.getpid()
+    print(f"[INFO] {start_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' started with PID {process_id}")
+    breakLineSpecial()
+    return start_time
+
+def logEnd(script_name, start_time):
+    breakLine(False)
+    end_time = datetime.datetime.now()
+    duration = end_time - start_time
+    hours, remainder = divmod(duration.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    milliseconds = duration.microseconds // 1000
+    
+    print(f"[INFO] {end_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' finished.")
+    print(f"[INFO] Duration: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds, and {int(milliseconds)} milliseconds")
+    breakLineSpecial(False)
+    breakLineSpecial(False)
+    breakLineSpecial()
+#-------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------
 # Microsoft Functions
 def refreshAccessToken(refresh_token):
     token_response = app.acquire_token_by_refresh_token(refresh_token, scopes=scope)
     if "access_token" in token_response:
         return token_response["access_token"], token_response["refresh_token"]
     else:
-        raise ValueError("Failed to refresh access token. Error: %s" % token_response.get("error"))
+        raise ValueError("[FATAL] Failed to refresh access token. Error: %s" % token_response.get("error"))
 #-------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------
 # ChatGPT Functions
-def turnNewslettersToGPTResponse(raw_input):
-    return raw_input
+def turnToGPTResponse(raw_input: str) -> str:
+    reversed = raw_input[::-1]
+    return reversed[:500]
 
 def createGreeting():
     return "Good morning. its whatever day it is"
+
+def breakFunction():
+    print("ill get to this later")
 #-------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------
@@ -44,7 +87,9 @@ def listOfIDS(connection = main_connection):
             results = cursor.fetchall()
         return [str(row[0]) for row in results]
     except Exception as e:
-        print(f"get_recent_ids: unsuccessful due to {e}")
+        breakLine(False)
+        print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
+        breakLine()
         return []
 #-------------------------------------------------------------------------------------------------
 
@@ -68,18 +113,24 @@ def extractAndPrepareEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        master_script_input.append(email_contents)
+        if email_id == "AQMkADAwATM0MDAAMS03NDNhLTBkNWUtMDACLTAwCgBGAAADbfmw3uzVRUODNoBEoZdvcwcAGcOIHBXnVUeaU9H0RA1RzgAAAgEMAAAAGcOIHBXnVUeaU9H0RA1RzgAAAg03AAAA":
+            print("bail. bail bail bail. ")
+            return
 
-        print(f"Email {email_id}")
-        print(f"- Source: {source}")
-        print(f"- Subject: {email_subject}")
-        print(f"- Sender: {email_sender}")
-        print(f"- Received Date: {email_received_date}")
-        print(f"- Received Time: {email_received_time}")
-        print()
-        # print(f"- Contents: {email_contents}")
+
+        breakLine(False)
+        print(f"[INFO] NEW EMAIL FOUND: {source}'s email with subject '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+        print(f"[INFO] - ID: {email_id}")
+        print(f"[INFO] - Source: {source}")
+        print(f"[INFO] - Subject: {email_subject}")
+        print(f"[INFO] - Sender: {email_sender}")
+        print(f"[INFO] - Received Date: {email_received_date}")
+        print(f"[INFO] - Received Time: {email_received_time}")
+        # print(f"[INFO] - Contents: {email_contents}")
 
         if email_id not in existing_emails:
+            incrementCounter()
+            master_script_input.append(email_contents)
             try:
                 currentCursor = main_connection.cursor()
                 currentCursor.execute("""
@@ -99,20 +150,21 @@ def extractAndPrepareEmails(emails, source = "Default"):
                         email_received_time, 
                     )
                 )
-                print("successfully inserted:", email_id)
+                print(f"[INFO] SUCCESSFULLY INSERTED: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
             except Exception as e:
-                print("could not insert:", e)
+                print(f"[ERROR] ERROR! COULD NOT INSERT: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time} due to: {e}")
         else:
-            print(f"EMAIL ALREADY FOUND: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
-        main_connection.commit()
-        break
+            print(f"[INFO] EMAIL ALREADY FOUND: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+        breakLine()
     
     master_script_input_str = "\n".join(master_script_input)
-    print(master_script_input_str)
+    gpt_output_script = turnToGPTResponse(master_script_input_str)
+    print(gpt_output_script)
+    
 
 
 # Use the access token to fetch emails
-def fetchEmails(access_token):
+def runLoop(access_token):
     filters = [
         ("Myself", "from/emailAddress/address eq 'connorddixon@gmail.com'"),
         ("Radio Free Mobile", "from/emailAddress/address eq 'rhswindsor@gmail.com'"),
@@ -124,7 +176,11 @@ def fetchEmails(access_token):
         'Content-Type': 'application/json'
     }
 
-    five_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=5)).isoformat() + 'Z'
+    five_days_ago = (datetime.datetime.now() - datetime.timedelta(days=5)).isoformat() + 'Z'
+    five_days_ago_readable = five_days_ago.split('T')[0] + " at " + (five_days_ago.split('T')[1]).split('.')[0] + " UTC"
+    breakLine(False)
+    print(f"[INFO] Fetching emails up until: {five_days_ago_readable}")
+    breakLine()
 
     for i in filters:
         endpoint = f"https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge {five_days_ago} and {i[1]}"
@@ -132,9 +188,13 @@ def fetchEmails(access_token):
         emails_master = response.json()
 
         if response.status_code != 200:
-            print(f"Error fetching emails: {emails_master}")
+            print(f"[ERROR] Error fetching emails: {emails_master}")
             # add text message once i get accepted
         else:
             extractAndPrepareEmails(emails_master, i[0])
+            print("current_config.master_email_counter:", master_email_counter)
         break
+
+    if master_email_counter == 0:
+        breakFunction()
 #-------------------------------------------------------------------------------------------------

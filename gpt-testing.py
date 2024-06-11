@@ -3,16 +3,15 @@ import os
 
 client = OpenAI(api_key=os.environ['ope'])
 
-def summarize_newsletters_with_system(newsletters, system_instructions):
+def summarize_newsletters_with_system(newsletters, tokens = 500):
     messages = [
-        {"role": "system", "content": system_instructions},
-        {"role": "user", "content": "Summarize the following newsletters and identify good investment opportunities:"},
         {"role": "user", "content": "\n\n".join(newsletters)}
     ]
 
     response = client.chat.completions.create(
         assistant="butler",
-        messages=messages
+        messages=messages,
+        max_tokens = tokens
     )
 
     return response.choices[0].message.content.strip()
