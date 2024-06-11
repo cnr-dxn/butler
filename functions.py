@@ -11,32 +11,7 @@ from openai import OpenAI # type: ignore
 import mysql.connector
 from mysql.connector.constants import ClientFlag
 
-#-------------------------------------------------------------------------------------------------
-
-account_sid = os.environ['sid']
-auth_token = os.environ['sec']
-twilio_client = Client(account_sid, auth_token)
-
-openai_client = OpenAI(api_key=os.environ['ope'])
-
-client_id = os.environ['cli']
-authority = "https://login.microsoftonline.com/common"  
-scope = ["Mail.Read"]
-
-app: msal.PublicClientApplication = msal.PublicClientApplication(client_id, authority=authority)
-
-config = {
-    "user": "cnrdxn",
-    "password": os.environ["mys"],
-    "host": "127.0.0.1",
-    "database": "butler"
-}
-
-try:
-    main_connection = mysql.connector.connect(**config)
-    print("successfully connected to server")
-except Exception as e:
-    print(f"nope: {e}")
+from config import *
 
 #-------------------------------------------------------------------------------------------------
 
@@ -159,23 +134,3 @@ def fetchEmails(access_token):
         else:
             extractAndPrepareEmails(emails_master, i[0])
         break
-
-#-------------------------------------------------------------------------------------------------
-
-if "__main__":
-    # print("hello")
-    # message = twilio_client.messages.create(body="does this work anymore", from_='+16203159839', to='+19702195822')
-    new_access, new_refresh = refreshAccessToken(os.environ['ref'])
-    # print("refrehsed")
-    fetchEmails(new_access)
-    main_connection.close()
-
-'''
-PLAN:
-    - get all emails for EITHER the last login date OR the past 4 days:
-    - break down/filter it into sources (rn we got 2):
-      - Radio Free Mobile
-      - Compounded Daily
-    - combine all threads of the same author (let's hardcode the author's in to a degree)
-
-'''
