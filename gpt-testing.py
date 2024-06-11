@@ -1,4 +1,5 @@
 from openai import OpenAI # type: ignore
+import os
 
 client = OpenAI(api_key=os.environ['ope'])
 
@@ -20,9 +21,5 @@ def summarize_newsletters_with_system(newsletters, system_instructions):
 f = open("./example-text/newsletter1.txt", "r")
 file = f.read().replace("\n", " ").replace("    ", " ").replace("   ", " ").replace("  ", " ")
 
-newsletters = [
-    file
-]
-
-summary = summarize_newsletters_with_system(newsletters, system_instructions)
-print(summary)
+# summary = summarize_newsletters_with_system(newsletters, system_instructions)
+# print(summary)
