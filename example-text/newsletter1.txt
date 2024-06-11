@@ -1,0 +1,24 @@
+Windows on Arm – The Empire Strikes Back
+
+
+
+Intel is not going down without a fight.
+
+Intel has rushed out a new processor to combat the threat posed by Qualcomm to its laptop business and while I am certain that Intel will do fine on the performance counts, it is power consumption and battery life of the devices it powers that will decide whether or not this is the moment where the x86 architecture becomes obsolete.
+Intel has also flexed its muscles in terms of its standing in the ecosystem with a massive 80 laptop designs across 20 OEMs announced.
+Just as Microsoft was announcing Copilot+ PCs (see here), Intel accelerated its launch window for Lunar Lake which was supposed to come in 2025 stating that devices would be available in Q3 2024 for the holiday shopping season.
+Lunar Lake was announced some time ago, but it was originally supposed to come in 2025 and be manufactured on Intel’s 20A in-house process.
+This version of Lunar Lake (see here) will have an onboard NPU capable of more than 40 TOPS and a 60 TOPS GPU meaning that when they work together, the device will be capable of 100 TOPS on device without troubling the CPU.
+The difference is that it looks like TSMC will be making one or more of the components of the SoC allowing Lunar Lake to be accelerated to meet the challenge of the X Elite and X Plus chips.
+With devices using both Arm and x86 in the market, Q4 2024 will be the first time that we will really be able to assess whether or not the x86 processor is obsolete.
+This will be decided in the performance per watt where the best performer will be able to deliver the longest battery life at any given level of performance.
+Historically, Arm has crushed the x86 in this category and so it remains my favourite to win but I am far from counting Intel or AMD out of this competition yet.
+Increasingly, it looks like the software is not going to be a problem as I suspect that Microsoft has tested this to destruction prior to launch given how much it has staked on Windows on Arm working this time around (see here).
+Consequently, I think this will leave the real battle to be fought over performance per watt (visible to consumers as battery life) although Intel is almost certain to draw attention to the emulation of apps that have not been ported to Arm.
+AMD will also be forced to fight this battle and so for once, Intel and AMD will be allies in facing a common threat.
+All of the historical indications are that Intel and AMD are going to struggle when it comes to performance per watt, but it would be premature to pronounce judgment without seeing how it fares in real devices in the hands of real users.
+Furthermore, Intel already has 80 design wins and claims that it will ship 40m AI PC processors in 2024 which underlines that it is still the big dog in this space with great influence over the PC ecosystem.
+At the end of the day, it is the PC buyers who will decide who wins and if Qualcomm can keep its leadership in power efficiency at leading-edge performance, it is going to take a lot of market share.
+There is almost nothing of this in the medium-term estimates for Qualcomm and so there is a good chance that these forecasts are still too low meaning that there is still upside in the shares from here.
+The easy money in Qualcomm has already been made as it has rerated from 12x 12-month forward PER to 21x meaning that earnings expansion is needed to keep the shares going up.
+I am pretty confident on this which is why I remain happy to sit tight on my Qualcomm position.
