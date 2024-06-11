@@ -14,41 +14,44 @@ from mysql.connector.constants import ClientFlag
 from config import *
 
 #-------------------------------------------------------------------------------------------------
-
+# Microsoft Functions
 def refreshAccessToken(refresh_token):
     token_response = app.acquire_token_by_refresh_token(refresh_token, scopes=scope)
     if "access_token" in token_response:
         return token_response["access_token"], token_response["refresh_token"]
     else:
         raise ValueError("Failed to refresh access token. Error: %s" % token_response.get("error"))
-
-def listOfIDS(connection = main_connection):
-    currentCursor = connection.cursor()
-    try: 
-        currentCursor.execute(f"""
-            SELECT id FROM entries WHERE added_time >= NOW() - INTERVAL 5 DAY;
-        """)
-        # print("returnDictGivenIndex: successful")
-    except:
-        print("listOfIDS: unsuccessful")
-        print()
-    new_urls = []
-    urls = currentCursor.fetchall()
-    for i in urls:
-        new_urls.append(str(i[0]))
-    return list(new_urls)
 #-------------------------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------------------------
+# ChatGPT Functions
 def turnNewslettersToGPTResponse(raw_input):
     return raw_input
 
 def createGreeting():
     return "Good morning. its whatever day it is"
+#-------------------------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------------------------
+# MySQL Functions
+def listOfIDS(connection = main_connection):
+    query = """
+        SELECT id FROM entries WHERE added_time >= NOW() - INTERVAL 5 DAY;
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+        return [str(row[0]) for row in results]
+    except Exception as e:
+        print(f"get_recent_ids: unsuccessful due to {e}")
+        return []
+#-------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------
+# Email Functions
 def extractTextFromHtml(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
-    text = soup.get_text(separator=' ', strip=True)
-    return text
+    return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
 
 def extractAndPrepareEmails(emails, source = "Default"):
     master_script_input = []
@@ -134,3 +137,4 @@ def fetchEmails(access_token):
         else:
             extractAndPrepareEmails(emails_master, i[0])
         break
+#-------------------------------------------------------------------------------------------------
