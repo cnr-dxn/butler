@@ -1,4 +1,5 @@
 from openai import OpenAI # type: ignore
+import os
 
 client = OpenAI(api_key=os.environ['ope'])
 
