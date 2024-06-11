@@ -164,7 +164,7 @@ def fetchEmails(access_token):
 
 if "__main__":
     # print("hello")
-    message = twilio_client.messages.create(body="does this work anymore", from_='+16203159839', to='+19702195822')
+    # message = twilio_client.messages.create(body="does this work anymore", from_='+16203159839', to='+19702195822')
     new_access, new_refresh = refreshAccessToken(os.environ['ref'])
     # print("refrehsed")
     fetchEmails(new_access)
