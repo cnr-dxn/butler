@@ -46,9 +46,10 @@ def extractTextFromHtml(html_content):
     return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
 
 def extractAndInsertEmails(emails, source = "Default"):
+    atLeastOneEmail = False
     existing_emails = listOfIDS()
 
-    for i in emails.get('value', []):
+    for index, i in enumerate(emails.get('value', [])):
         email_body_raw = i.get('body', {}).get('content', '')
         email_sender = i.get("sender", "").get("emailAddress", "").get("address", "")
         email_subject = i.get("subject", "SUBJECT NOT FOUND")
@@ -58,14 +59,7 @@ def extractAndInsertEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        breakLine(False)
-        print(f"[INFO] NEW EMAIL FOUND: {source}'s email with subject '{email_subject}', sent on {email_received_date} at time {email_received_time}")
-        print(f"[INFO] - ID: {email_id}")
-        print(f"[INFO] - Source: {source}")
-        print(f"[INFO] - Subject: {email_subject}")
-        print(f"[INFO] - Sender: {email_sender}")
-        print(f"[INFO] - Received Date: {email_received_date}")
-        print(f"[INFO] - Received Time: {email_received_time}")
+        
         # print(f"[INFO] - Contents: {email_contents}")
 
         if email_id not in existing_emails:
@@ -88,18 +82,31 @@ def extractAndInsertEmails(emails, source = "Default"):
                         email_received_time, 
                     )
                 )
+                print(f"[INFO] NEW EMAIL FOUND: {source}'s email with subject '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+                print(f"[INFO] - ID: {email_id}")
+                print(f"[INFO] - Source: {source}")
+                print(f"[INFO] - Subject: {email_subject}")
+                print(f"[INFO] - Sender: {email_sender}")
+                print(f"[INFO] - Received Date: {email_received_date}")
+                print(f"[INFO] - Received Time: {email_received_time}")
                 print(f"[INFO] SUCCESSFULLY INSERTED: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+                atLeastOneEmail = True
+                if index != len(emails.get('value', [])) - 1:
+                    print()
             except Exception as e:
                 print(f"[ERROR] ERROR! COULD NOT INSERT: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time} due to: {e}")
         else:
             print(f"[INFO] EMAIL ALREADY FOUND: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
-        breakLine()
+            print()
+
+    return atLeastOneEmail
     
 # Use the access token to fetch emails
 def runLoop(access_token):
     filters = [
         ("Myself", "from/emailAddress/address eq 'connorddixon@gmail.com'"),
         ("Radio Free Mobile", "from/emailAddress/address eq 'rhswindsor@gmail.com'"),
+        ("Richard from Radio Free Mobile", "from/emailAddress/address eq 'richard@radiofreemobile.com'"),
         ("How Money Works", "from/emailAddress/address eq 'news@compoundeddaily.com'")
     ]
 
@@ -123,6 +130,12 @@ def runLoop(access_token):
             print(f"[ERROR] Error fetching emails: {emails_master}")
             # add text message once i get accepted
         else:
-            extractAndInsertEmails(emails_master, i[0])
+            breakLine(False)
+            print(f"[INFO] SEARCHING FOR EMAILS FROM: {i[0]}")
+            print()
+            result = extractAndInsertEmails(emails_master, i[0])
+            if not result:
+                print(f"[INFO] NO NEW EMAILS FOUND FOR: {i[0]}")
+            breakLine()
 
 #-------------------------------------------------------------------------------------------------
