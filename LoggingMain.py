@@ -12,7 +12,7 @@ from openai import OpenAI # type: ignore
 import mysql.connector
 from mysql.connector.constants import ClientFlag
 
-from functions import *
+from LoggingFunctions import *
 from config import *
 
 #-------------------------------------------------------------------------------------------------
@@ -44,5 +44,8 @@ PLAN:
       - Radio Free Mobile
       - Compounded Daily
     - combine all threads of the same author (let's hardcode the author's in to a degree)
+
+    - IF I ALWAYS STORE THE SCRIPTS, I CAN OVERWRITE THE MP3 WITH THE LATEST
+    - will do this ^ with the recordings but nothing else (may not even store the recordings)
 
 '''

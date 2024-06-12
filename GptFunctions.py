@@ -113,11 +113,6 @@ def extractAndPrepareEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        if email_id == "AQMkADAwATM0MDAAMS03NDNhLTBkNWUtMDACLTAwCgBGAAADbfmw3uzVRUODNoBEoZdvcwcAGcOIHBXnVUeaU9H0RA1RzgAAAgEMAAAAGcOIHBXnVUeaU9H0RA1RzgAAAg03AAAA":
-            print("bail. bail bail bail. ")
-            return
-
-
         breakLine(False)
         print(f"[INFO] NEW EMAIL FOUND: {source}'s email with subject '{email_subject}', sent on {email_received_date} at time {email_received_time}")
         print(f"[INFO] - ID: {email_id}")
