@@ -3,46 +3,14 @@ import requests # type: ignore
 import pprint 
 import json
 import os
+import sys
 from typing import *
 import datetime
 from bs4 import BeautifulSoup
-from twilio.rest import Client
-from openai import OpenAI # type: ignore
-import mysql.connector
-from mysql.connector.constants import ClientFlag
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
-
-#-------------------------------------------------------------------------------------------------
-# Member Functions
-def breakLineSpecial(end: bool = True):
-    print("=====================================================================================================")
-    if end: print()
-
-def breakLine(end: bool = True):
-    print("*************************************************************************************")
-    if end: print()
-
-def logStart(script_name):
-    breakLineSpecial(False)
-    start_time = datetime.datetime.now()
-    process_id = os.getpid()
-    print(f"[INFO] {start_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' started with PID {process_id}")
-    breakLineSpecial()
-    return start_time
-
-def logEnd(script_name, start_time):
-    breakLineSpecial(False)
-    end_time = datetime.datetime.now()
-    duration = end_time - start_time
-    hours, remainder = divmod(duration.total_seconds(), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    milliseconds = duration.microseconds // 1000
-    
-    print(f"[INFO] {end_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' finished.")
-    print(f"[INFO] Duration: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds, and {int(milliseconds)} milliseconds")
-    breakLineSpecial()
-#-------------------------------------------------------------------------------------------------
+from MainFunctions import *
 
 #-------------------------------------------------------------------------------------------------
 # Microsoft Functions
@@ -77,7 +45,7 @@ def listOfIDS(connection = main_connection):
 def extractTextFromHtml(html_content):
     return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
 
-def extractAndPrepareEmails(emails, source = "Default"):
+def extractAndInsertEmails(emails, source = "Default"):
     existing_emails = listOfIDS()
 
     for i in emails.get('value', []):
@@ -155,7 +123,6 @@ def runLoop(access_token):
             print(f"[ERROR] Error fetching emails: {emails_master}")
             # add text message once i get accepted
         else:
-            extractAndPrepareEmails(emails_master, i[0])
-        break
+            extractAndInsertEmails(emails_master, i[0])
 
 #-------------------------------------------------------------------------------------------------

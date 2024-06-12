@@ -12,8 +12,12 @@ from openai import OpenAI # type: ignore
 import mysql.connector
 from mysql.connector.constants import ClientFlag
 
-from LoggingFunctions import *
+from function import * # type: ignore
+from MainFunctions import *
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
+from MainFunctions import *
 
 #-------------------------------------------------------------------------------------------------
 
