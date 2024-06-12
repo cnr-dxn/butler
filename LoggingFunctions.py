@@ -15,10 +15,6 @@ from config import *
 
 #-------------------------------------------------------------------------------------------------
 # Member Functions
-def incrementCounter():
-    global master_email_counter
-    master_email_counter += 1
-
 def breakLineSpecial(end: bool = True):
     print("=====================================================================================================")
     if end: print()
@@ -29,8 +25,6 @@ def breakLine(end: bool = True):
 
 def logStart(script_name):
     breakLineSpecial(False)
-    breakLineSpecial(False)
-    breakLineSpecial(False)
     start_time = datetime.datetime.now()
     process_id = os.getpid()
     print(f"[INFO] {start_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' started with PID {process_id}")
@@ -38,7 +32,7 @@ def logStart(script_name):
     return start_time
 
 def logEnd(script_name, start_time):
-    breakLine(False)
+    breakLineSpecial(False)
     end_time = datetime.datetime.now()
     duration = end_time - start_time
     hours, remainder = divmod(duration.total_seconds(), 3600)
@@ -47,8 +41,6 @@ def logEnd(script_name, start_time):
     
     print(f"[INFO] {end_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' finished.")
     print(f"[INFO] Duration: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds, and {int(milliseconds)} milliseconds")
-    breakLineSpecial(False)
-    breakLineSpecial(False)
     breakLineSpecial()
 #-------------------------------------------------------------------------------------------------
 
@@ -86,8 +78,6 @@ def extractTextFromHtml(html_content):
     return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
 
 def extractAndPrepareEmails(emails, source = "Default"):
-    master_script_input = []
-    master_script_input_str = ""
     existing_emails = listOfIDS()
 
     for i in emails.get('value', []):
@@ -111,8 +101,6 @@ def extractAndPrepareEmails(emails, source = "Default"):
         # print(f"[INFO] - Contents: {email_contents}")
 
         if email_id not in existing_emails:
-            incrementCounter()
-            master_script_input.append(email_contents)
             try:
                 currentCursor = main_connection.cursor()
                 currentCursor.execute("""
@@ -168,7 +156,6 @@ def runLoop(access_token):
             # add text message once i get accepted
         else:
             extractAndPrepareEmails(emails_master, i[0])
-            print("current_config.master_email_counter:", master_email_counter)
         break
 
 #-------------------------------------------------------------------------------------------------

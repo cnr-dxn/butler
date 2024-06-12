@@ -33,6 +33,7 @@ if "__main__":
             print("[INFO] argument is not 'commit'. not committing results")
     else:
         print("[INFO] no arguments passed. not committing results")
+    breakLine()
 
     main_connection.close()
     logEnd(service_name, start_time)
