@@ -3,4 +3,5 @@
 EMAIL_SCRIPT="/home/cnrdxn/butler/insertingEmails/main.py"
 ARGS="commit"
 
-python3 $EMAIL_SCRIPT $ARGS
+source /home/cnrdxn/.bashrc
+/usr/bin/python3 $EMAIL_SCRIPT $ARGS
