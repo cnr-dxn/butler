@@ -3,15 +3,14 @@ import requests # type: ignore
 import pprint 
 import json
 import os
+import sys
 from typing import *
 import datetime
 from bs4 import BeautifulSoup
-from twilio.rest import Client
-from openai import OpenAI # type: ignore
-import mysql.connector
-from mysql.connector.constants import ClientFlag
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
+from MainFunctions import *
 
 #-------------------------------------------------------------------------------------------------
 # Microsoft Functions
@@ -20,16 +19,7 @@ def refreshAccessToken(refresh_token):
     if "access_token" in token_response:
         return token_response["access_token"], token_response["refresh_token"]
     else:
-        raise ValueError("Failed to refresh access token. Error: %s" % token_response.get("error"))
-#-------------------------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------------------------
-# ChatGPT Functions
-def turnNewslettersToGPTResponse(raw_input):
-    return raw_input
-
-def createGreeting():
-    return "Good morning. its whatever day it is"
+        raise ValueError("[FATAL] Failed to refresh access token. Error: %s" % token_response.get("error"))
 #-------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------
@@ -44,7 +34,9 @@ def listOfIDS(connection = main_connection):
             results = cursor.fetchall()
         return [str(row[0]) for row in results]
     except Exception as e:
-        print(f"get_recent_ids: unsuccessful due to {e}")
+        breakLine(False)
+        print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
+        breakLine()
         return []
 #-------------------------------------------------------------------------------------------------
 
@@ -53,12 +45,11 @@ def listOfIDS(connection = main_connection):
 def extractTextFromHtml(html_content):
     return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
 
-def extractAndPrepareEmails(emails, source = "Default"):
-    master_script_input = []
-    master_script_input_str = ""
+def extractAndInsertEmails(emails, source = "Default"):
+    atLeastOneEmail = False
     existing_emails = listOfIDS()
 
-    for i in emails.get('value', []):
+    for index, i in enumerate(emails.get('value', [])):
         email_body_raw = i.get('body', {}).get('content', '')
         email_sender = i.get("sender", "").get("emailAddress", "").get("address", "")
         email_subject = i.get("subject", "SUBJECT NOT FOUND")
@@ -68,16 +59,8 @@ def extractAndPrepareEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        master_script_input.append(email_contents)
-
-        print(f"Email {email_id}")
-        print(f"- Source: {source}")
-        print(f"- Subject: {email_subject}")
-        print(f"- Sender: {email_sender}")
-        print(f"- Received Date: {email_received_date}")
-        print(f"- Received Time: {email_received_time}")
-        print()
-        # print(f"- Contents: {email_contents}")
+        
+        # print(f"[INFO] - Contents: {email_contents}")
 
         if email_id not in existing_emails:
             try:
@@ -99,23 +82,31 @@ def extractAndPrepareEmails(emails, source = "Default"):
                         email_received_time, 
                     )
                 )
-                print("successfully inserted:", email_id)
+                print(f"[INFO] NEW EMAIL FOUND: {source}'s email with subject '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+                print(f"[INFO] - ID: {email_id}")
+                print(f"[INFO] - Source: {source}")
+                print(f"[INFO] - Subject: {email_subject}")
+                print(f"[INFO] - Sender: {email_sender}")
+                print(f"[INFO] - Received Date: {email_received_date}")
+                print(f"[INFO] - Received Time: {email_received_time}")
+                print(f"[INFO] SUCCESSFULLY INSERTED: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+                atLeastOneEmail = True
+                if index != len(emails.get('value', [])) - 1:
+                    print()
             except Exception as e:
-                print("could not insert:", e)
+                print(f"[ERROR] ERROR! COULD NOT INSERT: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time} due to: {e}")
         else:
-            print(f"EMAIL ALREADY FOUND: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
-        main_connection.commit()
-        break
+            print(f"[INFO] EMAIL ALREADY FOUND: {source}'s email '{email_subject}', sent on {email_received_date} at time {email_received_time}")
+            print()
+
+    return atLeastOneEmail
     
-    master_script_input_str = "\n".join(master_script_input)
-    print(master_script_input_str)
-
-
 # Use the access token to fetch emails
-def fetchEmails(access_token):
+def runLoop(access_token):
     filters = [
         ("Myself", "from/emailAddress/address eq 'connorddixon@gmail.com'"),
         ("Radio Free Mobile", "from/emailAddress/address eq 'rhswindsor@gmail.com'"),
+        ("Richard from Radio Free Mobile", "from/emailAddress/address eq 'richard@radiofreemobile.com'"),
         ("How Money Works", "from/emailAddress/address eq 'news@compoundeddaily.com'")
     ]
 
@@ -124,7 +115,11 @@ def fetchEmails(access_token):
         'Content-Type': 'application/json'
     }
 
-    five_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=5)).isoformat() + 'Z'
+    five_days_ago = (datetime.datetime.now() - datetime.timedelta(days=5)).isoformat() + 'Z'
+    five_days_ago_readable = five_days_ago.split('T')[0] + " at " + (five_days_ago.split('T')[1]).split('.')[0] + " UTC"
+    breakLine(False)
+    print(f"[INFO] Fetching emails up until: {five_days_ago_readable}")
+    breakLine()
 
     for i in filters:
         endpoint = f"https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge {five_days_ago} and {i[1]}"
@@ -132,9 +127,15 @@ def fetchEmails(access_token):
         emails_master = response.json()
 
         if response.status_code != 200:
-            print(f"Error fetching emails: {emails_master}")
+            print(f"[ERROR] Error fetching emails: {emails_master}")
             # add text message once i get accepted
         else:
-            extractAndPrepareEmails(emails_master, i[0])
-        break
+            breakLine(False)
+            print(f"[INFO] SEARCHING FOR EMAILS FROM: {i[0]}")
+            print()
+            result = extractAndInsertEmails(emails_master, i[0])
+            if not result:
+                print(f"[INFO] NO NEW EMAILS FOUND FOR: {i[0]}")
+            breakLine()
+
 #-------------------------------------------------------------------------------------------------
