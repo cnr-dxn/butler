@@ -31,16 +31,3 @@ if "__main__":
 
     main_connection.close()
     logEnd(service_name, start_time)
-
-'''
-PLAN:
-    - get all emails for EITHER the last login date OR the past 4 days:
-    - break down/filter it into sources (rn we got 2):
-      - Radio Free Mobile
-      - Compounded Daily
-    - combine all threads of the same author (let's hardcode the author's in to a degree)
-
-    - IF I ALWAYS STORE THE SCRIPTS, I CAN OVERWRITE THE MP3 WITH THE LATEST
-    - will do this ^ with the recordings but nothing else (may not even store the recordings)
-
-'''
