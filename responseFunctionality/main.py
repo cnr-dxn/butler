@@ -1,6 +1,16 @@
+import msal # type: ignore 
+import requests # type: ignore
+import pprint 
+import json
 import os
 import sys
 from typing import *
+import datetime
+from bs4 import BeautifulSoup
+from twilio.rest import Client
+from openai import OpenAI # type: ignore
+import mysql.connector
+from mysql.connector.constants import ClientFlag
 
 from function import * # type: ignore
 from MainFunctions import *

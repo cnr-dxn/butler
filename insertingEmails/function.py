@@ -1,7 +1,4 @@
-import msal # type: ignore 
 import requests # type: ignore
-import pprint 
-import json
 import os
 import sys
 from typing import *
