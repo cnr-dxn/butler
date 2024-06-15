@@ -25,17 +25,9 @@ if "__main__":
     service_name = "Butler Service"
     start_time = logStart(service_name)
 
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "commit":
-            print("committing results!") 
-            main_connection.commit()
-        else:
-            print("[INFO] argument is not 'commit'. not committing results")
-    else:
-        print("[INFO] no arguments passed. not committing results")
-    breakLine()
+    commitOrNot(sys.argv)
 
-    turnToGPTResponse("hello")
+    bonk = turnToGPTResponse("hello")
 
     main_connection.close()
     logEnd(service_name, start_time)

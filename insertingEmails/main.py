@@ -19,15 +19,7 @@ if "__main__":
 
     runLoop(new_access)
 
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "commit":
-            print("committing results!") 
-            main_connection.commit()
-        else:
-            print("[INFO] argument is not 'commit'. not committing results")
-    else:
-        print("[INFO] no arguments passed. not committing results")
-    breakLine()
+    commitOrNot(sys.argv)
 
     main_connection.close()
     logEnd(service_name, start_time)

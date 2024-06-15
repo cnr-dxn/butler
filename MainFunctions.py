@@ -3,6 +3,7 @@ import requests # type: ignore
 import pprint 
 import json
 import os
+import sys
 from typing import *
 import datetime
 from bs4 import BeautifulSoup
@@ -40,3 +41,14 @@ def logEnd(script_name, start_time):
     print(f"[INFO] {end_time.strftime('%Y-%m-%d %H:%M:%S')} - Script '{script_name}' finished.")
     print(f"[INFO] Duration: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds, and {int(milliseconds)} milliseconds")
     breakLineSpecial()
+
+def commitOrNot(sysargv):
+    if len(sysargv) > 1:
+        if sysargv[1].lower() == "commit":
+            print("committing results!") 
+            main_connection.commit()
+        else:
+            print("[INFO] argument is not 'commit'. not committing results")
+    else:
+        print("[INFO] no arguments passed. not committing results")
+    breakLine()
