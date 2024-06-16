@@ -11,11 +11,11 @@ from MainFunctions import *
 
 #-------------------------------------------------------------------------------------------------
 # ChatGPT Functions
-def turnToGPTResponse(raw_input: str, real: bool) -> str:
+def turnToGPTResponse(raw_input: str, real: bool = False) -> str:
     if ~real:
-        print("freak out")
+        print("not real")
     else:
-        print("we good")
+        print("real")
     reversed = raw_input[::-1]
     return reversed[:500]
 
@@ -30,15 +30,14 @@ def breakFunction():
 # MySQL Functions
 def selectMailBySender(sender: str, connection = main_connection):
     query = """
-        SELECT body 
+        SELECT sender, subject, received_date 
             FROM entries 
-            WHERE STR_TO_DATE(received_date, '%Y-%m-%d') >= NOW() - INTERVAL 5 DAY
-            AND sender = %s
+            WHERE sender = %s
             AND used = false;
     """
     try:
         with connection.cursor() as cursor:
-            cursor.execute(query, (sender))
+            cursor.execute(query, (sender, ))
             results = cursor.fetchall()
     except Exception as e:
         breakLine(False)
@@ -47,3 +46,7 @@ def selectMailBySender(sender: str, connection = main_connection):
         return []
     print(results)
 #-------------------------------------------------------------------------------------------------
+
+'''
+Could not process parameters: str(news@compoundeddaily.com), it must be of type list, tuple or dict
+'''

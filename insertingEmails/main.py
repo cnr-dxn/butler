@@ -12,7 +12,7 @@ from MainFunctions import *
 #-------------------------------------------------------------------------------------------------
 
 if "__main__":
-    service_name = "Butler Service"
+    service_name = "Insert Email Service"
     start_time = logStart(service_name)
 
     new_access, new_refresh = refreshAccessToken(os.environ['ref'])

@@ -56,7 +56,6 @@ def extractAndInsertEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        
         # print(f"[INFO] - Contents: {email_contents}")
 
         if email_id not in existing_emails:
@@ -66,13 +65,15 @@ def extractAndInsertEmails(emails, source = "Default"):
                     INSERT INTO entries (
                         id, 
                         source,
+                        subject,
                         sender,
                         body, 
                         received_date, 
                         received_time 
-                    ) VALUES (%s, %s, %s, %s, %s, %s)""", (
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)""", (
                         email_id,
                         source, 
+                        email_subject, 
                         email_sender, 
                         email_contents, 
                         email_received_date, 
