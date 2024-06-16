@@ -28,18 +28,21 @@ def breakFunction():
 
 #-------------------------------------------------------------------------------------------------
 # MySQL Functions
-def listOfIDS(connection = main_connection):
+def selectMailBySender(sender: str, connection = main_connection):
     query = """
-        SELECT id FROM entries WHERE added_time >= NOW() - INTERVAL 5 DAY;
+        SELECT body 
+            FROM entries 
+            WHERE STR_TO_DATE(received_date, '%Y-%m-%d') >= NOW() - INTERVAL 5 DAY
+            AND used = false;
     """
     try:
         with connection.cursor() as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
-        return [str(row[0]) for row in results]
     except Exception as e:
         breakLine(False)
         print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
         breakLine()
         return []
+    print(results)
 #-------------------------------------------------------------------------------------------------
