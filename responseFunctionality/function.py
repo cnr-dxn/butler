@@ -33,11 +33,12 @@ def selectMailBySender(sender: str, connection = main_connection):
         SELECT body 
             FROM entries 
             WHERE STR_TO_DATE(received_date, '%Y-%m-%d') >= NOW() - INTERVAL 5 DAY
+            AND sender = %s
             AND used = false;
     """
     try:
         with connection.cursor() as cursor:
-            cursor.execute(query)
+            cursor.execute(query, (sender))
             results = cursor.fetchall()
     except Exception as e:
         breakLine(False)

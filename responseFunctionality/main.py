@@ -25,6 +25,8 @@ if "__main__":
     service_name = "Butler Service"
     start_time = logStart(service_name)
 
+    selectMailBySender("news@compoundeddaily.com")
+
     commitOrNot(sys.argv)
 
     bonk = turnToGPTResponse("hello")
