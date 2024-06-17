@@ -65,7 +65,7 @@ def submit_message(assistant_id, thread, user_message):
 def get_response(thread):
     return openai_client.beta.threads.messages.list(thread_id=thread.id, order="asc")
 
-def summarize_newsletters_with_system(input_script, tokens = 1000):
+def summarize_newsletters_with_system(input_script, tokens = max_assistant_answer_tokens):
     thread = openai_client.beta.threads.create()
     run = submit_message(asst_id, thread, input_script)
     return thread, run
@@ -79,7 +79,9 @@ def turnToGPTResponse(raw_input: str, real: bool = False) -> str:
         return reversed[:500]
     else:
         print("real")
-        summarize_newsletters_with_system(raw_input)
+        thread1, run1 = summarize_newsletters_with_system(raw_input)
+        run1 = wait_on_run(run1, thread1)
+        return extract_message(get_response(thread1)).replace("Summary:\n", "")
 
 def createGreeting():
     return "Good morning. its whatever day it is"
@@ -108,6 +110,20 @@ def selectMailBySender(sender: str, connection = main_connection):
         return []
     print(results)
 #-------------------------------------------------------------------------------------------------
+
+def mainLoop():
+    master_script = ""
+    '''
+    master script should be something like:
+    "Hello there! Today is {}. You have {} messages today, let's break them down.
+    From Radio Free Mobile: {connor-generated-name}:
+    <summary>
+    From How Money Works: {connor-generated-name}:
+    <summary>
+    No new messages from Connor Dixon recently
+    Have an excellent day sir!
+    '''
+    print("herm")
 
 '''
 Could not process parameters: str(news@compoundeddaily.com), it must be of type list, tuple or dict
