@@ -1,7 +1,6 @@
 import requests # type: ignore
 import os
 import sys
-import re
 from typing import *
 import datetime
 from bs4 import BeautifulSoup
