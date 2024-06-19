@@ -18,9 +18,10 @@ if "__main__":
 
     selectMailBySender("news@compoundeddaily.com")
 
+    mainLoop()
+
     commitOrNot(sys.argv)
 
-    bonk = turnToGPTResponse("hello")
 
     main_connection.close()
     logEnd(service_name, start_time)

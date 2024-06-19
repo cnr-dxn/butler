@@ -23,13 +23,13 @@ def refreshAccessToken(refresh_token):
 # MySQL Functions
 def listOfIDS(connection = main_connection):
     query = """
-        SELECT id FROM entries WHERE added_time >= NOW() - INTERVAL 5 DAY;
+        SELECT sender, subject FROM entries WHERE added_time >= NOW() - INTERVAL 5 DAY;
     """
     try:
         with connection.cursor() as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
-        return [str(row[0]) for row in results]
+        return results
     except Exception as e:
         breakLine(False)
         print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
@@ -56,9 +56,8 @@ def extractAndInsertEmails(emails, source = "Default"):
         email_received_time = email_received_raw.split('T')[1]
         email_id = i.get('id', "ID NOT FOUND")
 
-        # print(f"[INFO] - Contents: {email_contents}")
-
-        if email_id not in existing_emails:
+        curr_key = (email_sender, email_subject)
+        if curr_key not in existing_emails:
             try:
                 currentCursor = main_connection.cursor()
                 currentCursor.execute("""

@@ -33,12 +33,12 @@ def synthesizeSpeech(text, output_file):
     print(f"Speech synthesized and saved to {output_file}")
 
 # Pretty printing helper
-def extract_message(messages):
+def extractMessage(messages):
     for m in messages:
         if (m.role).lower() == "assistant":
             return m.content[0].text.value
 
-def wait_on_run(run, thread):
+def waitOnRun(run, thread):
     seconds = 0
     while run.status == "queued" or run.status == "in_progress":
         run = openai_client.beta.threads.runs.retrieve(
@@ -52,39 +52,52 @@ def wait_on_run(run, thread):
     print()
     return run
 
-def submit_message(assistant_id, thread, user_message):
+def submitMessage(assistant_id, thread, user_message, tokens = max_assistant_answer_tokens):
     openai_client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message
     )
     return openai_client.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant_id,
-        max_completion_tokens = max_assistant_answer_tokens
+        max_completion_tokens = tokens
     )
 
-def get_response(thread):
+def getResponse(thread):
     return openai_client.beta.threads.messages.list(thread_id=thread.id, order="asc")
 
-def summarize_newsletters_with_system(input_script, tokens = max_assistant_answer_tokens):
+def summarizeNewslettersWithSystem(input_script, tokens = max_assistant_answer_tokens):
     thread = openai_client.beta.threads.create()
-    run = submit_message(asst_id, thread, input_script)
+    run = submitMessage(asst_id, thread, input_script)
     return thread, run
 
+def createGreeting():
+    thread = openai_client.beta.threads.create()
+    run = submitMessage(greeter_id, thread, "go")
+    return thread, run
+
+
 #-------------------------------------------------------------------------------------------------
-# ChatGPT Functions
-def turnToGPTResponse(raw_input: str, real: bool = False) -> str:
+# Connor's ChatGPT Functions
+def retrieveSummary(raw_input: str, real: bool = False) -> str:
     if ~real:
         print("not real")
         reversed = raw_input[::-1]
         return reversed[:500]
     else:
         print("real")
-        thread1, run1 = summarize_newsletters_with_system(raw_input)
-        run1 = wait_on_run(run1, thread1)
-        return extract_message(get_response(thread1)).replace("Summary:\n", "")
+        thread1, run1 = summarizeNewslettersWithSystem(raw_input)
+        run1 = waitOnRun(run1, thread1)
+        return extractMessage(getResponse(thread1)).replace("Summary:\n", "")
 
-def createGreeting():
-    return "Good morning. its whatever day it is"
+def retrieveGreeting(real: bool = False):
+    if ~real:
+        print("not real")
+        return "Good morning. It's whatever day it is. Let's dive into whatever we're going to dive into."
+    else:
+        print("real")
+        thread1, run1 = createGreeting()
+        run1 = waitOnRun(run1, thread1)
+        return extractMessage(getResponse(thread1))
 
 def breakFunction():
     print("ill get to this later")
@@ -94,7 +107,7 @@ def breakFunction():
 # MySQL Functions
 def selectMailBySender(sender: str, connection = main_connection):
     query = """
-        SELECT sender, subject, received_date 
+        SELECT sender, subject, body, received_date 
             FROM entries 
             WHERE sender = %s
             AND used = false;
@@ -108,7 +121,6 @@ def selectMailBySender(sender: str, connection = main_connection):
         print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
         breakLine()
         return []
-    print(results)
 #-------------------------------------------------------------------------------------------------
 
 def mainLoop():
@@ -123,7 +135,7 @@ def mainLoop():
     No new messages from Connor Dixon recently
     Have an excellent day sir!
     '''
-    print("herm")
+    print(retrieveGreeting())
 
 '''
 Could not process parameters: str(news@compoundeddaily.com), it must be of type list, tuple or dict
