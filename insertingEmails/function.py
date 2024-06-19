@@ -1,9 +1,11 @@
 import requests # type: ignore
 import os
 import sys
+import re
 from typing import *
 import datetime
 from bs4 import BeautifulSoup
+from unicodedata import normalize
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
@@ -39,14 +41,27 @@ def listOfIDS(connection = main_connection):
 
 #-------------------------------------------------------------------------------------------------
 # Email Functions
+
+def removeAfterPhrase(text, phrase):
+    return text.split(phrase)[0]
+
 def extractTextFromHtml(html_content):
-    return BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
+    # before_unicode = BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
+    # return removeUnicode(before_unicode)
+    return removeAfterPhrase(
+        BeautifulSoup(html_content, 'html.parser')
+        .get_text(separator=' ', strip=True)
+        .encode('ascii', 'ignore').decode()
+        .replace("   ", "")
+        .replace(" View Email in Browser ", ""),
+        "Enjoy early access to the latest How Money Works"
+    )
 
 def extractAndInsertEmails(emails, source = "Default"):
     atLeastOneEmail = False
-    existing_emails = listOfIDS()
 
     for index, i in enumerate(emails.get('value', [])):
+        existing_emails = listOfIDS()
         email_body_raw = i.get('body', {}).get('content', '')
         email_sender = i.get("sender", "").get("emailAddress", "").get("address", "")
         email_subject = i.get("subject", "SUBJECT NOT FOUND")

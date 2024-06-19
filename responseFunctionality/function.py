@@ -110,6 +110,7 @@ def selectMailBySender(sender: str, connection = main_connection):
         SELECT sender, subject, body, received_date 
             FROM entries 
             WHERE sender = %s
+            AND received_date >= DATE_SUB(CURDATE(), INTERVAL 5 DAY)
             AND used = false;
     """
     try:
@@ -121,6 +122,7 @@ def selectMailBySender(sender: str, connection = main_connection):
         print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
         breakLine()
         return []
+    return results
 #-------------------------------------------------------------------------------------------------
 
 def mainLoop():
@@ -135,6 +137,7 @@ def mainLoop():
     No new messages from Connor Dixon recently
     Have an excellent day sir!
     '''
+    print(selectMailBySender("news@compoundeddaily.com"))
     print(retrieveGreeting())
 
 '''
