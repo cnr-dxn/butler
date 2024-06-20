@@ -16,12 +16,9 @@ if "__main__":
     service_name = "Main Butler Service"
     start_time = logStart(service_name)
 
-    selectMailBySender("news@compoundeddaily.com")
-
     mainLoop()
 
     commitOrNot(sys.argv)
-
 
     main_connection.close()
     logEnd(service_name, start_time)

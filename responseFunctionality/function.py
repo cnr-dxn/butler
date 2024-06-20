@@ -26,13 +26,11 @@ def getCurrentDayAndDate():
 #-------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------
-# Direct OpenAI Functions
-def synthesizeSpeech(text, output_file):
-    # Initialize a session using Amazon Polly
+# AWS Functions
+def synthesizeAndSaveSpeech(text, output_file):
     text = "<speak>\n" + text + "\n</speak>"
     polly = boto3.client('polly')
 
-    # Synthesize speech using Polly
     response = polly.synthesize_speech(
         Text=text,
         OutputFormat = 'mp3',
@@ -41,13 +39,17 @@ def synthesizeSpeech(text, output_file):
         Engine = "neural"
     )
 
-    # Save the audio stream returned by Amazon Polly to an MP3 file
     with open(output_file, 'wb') as file:
         file.write(response['AudioStream'].read())
 
-    print(f"Speech synthesized and saved to {output_file}")
+    print(f"[INFO] Speech synthesized and saved to {output_file}")
 
-# Pretty printing helper
+def returnFarewell():
+    return """\nThat's all! Have an excellent day sir!"""
+#-------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------
+# Direct OpenAI Functions
 def extractMessage(messages):
     for m in messages:
         if (m.role).lower() == "assistant":
@@ -60,10 +62,10 @@ def waitOnRun(run, thread):
             thread_id=thread.id,
             run_id=run.id,
         )
-        print(f"\rwaiting for {str(seconds).zfill(2)} seconds with status: {run.status}", end='', flush=True)
+        print(f"\r[INFO] waiting for {str(seconds).zfill(2)} seconds with status: {run.status}", end='', flush=True)
         sleep(1)
         seconds += 1
-    print(f"\rwaiting for {str(seconds).zfill(2)} seconds with status: {run.status}", end='', flush=True)
+    print(f"\r[INFO] waiting for {str(seconds).zfill(2)} seconds with status: {run.status}", end='', flush=True)
     print()
     return run
 
@@ -94,36 +96,54 @@ def createGreeting():
 
 #-------------------------------------------------------------------------------------------------
 # Connor's ChatGPT Functions
-def retrieveSummary(raw_input: str, real: bool = False) -> str:
-    if ~real:
-        print("not real")
-        reversed = raw_input[::-1]
-        return reversed[:500]
+def retrieveSummary(raw_input: str, sender: str, real: bool = False) -> str:
+    if raw_input.strip() == "":
+        return ""
+
+    script = f"\nFrom {sender}:" + """\n<break time="500ms"/>\n"""
+    if not real:
+        print("[INFO] mocking `retrieveSummary`")
+        script += raw_input[:1000]
     else:
-        print("real")
+        print("[INFO] executing `retrieveSummary`")
         thread1, run1 = summarizeNewslettersWithSystem(raw_input)
         run1 = waitOnRun(run1, thread1)
-        return extractMessage(getResponse(thread1)).replace("Summary:\n", "")
+        script += extractMessage(getResponse(thread1)).replace("Summary:\n", "")
+    return script
 
-def retrieveGreeting(use_tokens: bool = False):
-    if not use_tokens:
-        print("not real")
+def retrieveGreeting(real: bool = False):
+    if not real:
+        print("[INFO] mocking `retrieveGreeting`")
         return "Good morning. It's whatever day it is. Let's dive into whatever we're going to dive into."
     else:
-        print("real")
+        print("[INFO] executing `retrieveGreeting`")
         thread1, run1 = createGreeting()
         run1 = waitOnRun(run1, thread1)
         return extractMessage(getResponse(thread1))
-
-def breakFunction():
-    print("ill get to this later")
 #-------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------
 # MySQL Functions
+def updatedUsedBySender(sender: str, subject: str, received_date: str, source: str, connection = main_connection):
+    query = """
+        UPDATE entries 
+            SET used = true
+            WHERE sender = %s
+            AND subject = %s
+            AND received_date = %s
+            AND received_date >= DATE_SUB(CURDATE(), INTERVAL 5 DAY)
+            AND used = false;
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, (sender, subject, received_date, ))
+            print(f"[INFO] UPDATED {source}'s email titled \"{subject}\" to USED")
+    except Exception as e:
+        print(e)
+
 def selectMailBySender(sender: str, connection = main_connection):
     query = """
-        SELECT sender, subject, body, received_date 
+        SELECT body, subject, sender, received_date, source
             FROM entries 
             WHERE sender = %s
             AND received_date >= DATE_SUB(CURDATE(), INTERVAL 5 DAY)
@@ -135,10 +155,20 @@ def selectMailBySender(sender: str, connection = main_connection):
             results = cursor.fetchall()
     except Exception as e:
         breakLine(False)
-        print(f"[ERROR] get_recent_ids: unsuccessful due to {e}")
+        print(f"[ERROR] selectMailBySender: unsuccessful due to {e}")
         breakLine()
         return []
-    return results
+    
+    script = ""
+    for i in results:
+        print(f"[INFO] USING {i[4]}'s email titled \"{i[1]}\" (received on {i[3]}) in this script")
+        updatedUsedBySender(sender, i[1], i[3], i[4])
+        script += f"{i[0]}\n"
+
+    print(f"[INFO] - updated emails found to used = true")
+    
+    return script
+
 #-------------------------------------------------------------------------------------------------
 
 def mainLoop():
@@ -153,14 +183,29 @@ def mainLoop():
     No new messages from Connor Dixon recently
     Have an excellent day sir!
     '''
-    synthesizeSpeech(retrieveGreeting(), "hello.mp3")
+    filler = retrieveSummary(selectMailBySender("richard@radiofreemobile.com"), "Richard from Radio Free Mobile", real=True)
+    master_script += retrieveGreeting(real=True)
+    master_script += """\n<break time="1s"/>"""
+    if len(filler) == 0:
+        master_script += "Unfortunately, there are no new messages available today."
+    else:
+        master_script += filler
+    master_script += """\n<break time="1s"/>"""
+    master_script += returnFarewell()
+
+
+    print(f"[INFO] Script used: {master_script}")
+
+    synthesizeAndSaveSpeech(master_script, "hello.mp3")
+
+
 
 '''
-+-----------------------------+
-| sender                      |
-+-----------------------------+
-| richard@radiofreemobile.com |
-| connorddixon@gmail.com      |
-| news@compoundeddaily.com    |
-+-----------------------------+
++-----------------------------+--------------------------------+
+| sender                      | source                         |
++-----------------------------+--------------------------------+
+| richard@radiofreemobile.com | Richard from Radio Free Mobile |
+| connorddixon@gmail.com      | Myself                         |
+| news@compoundeddaily.com    | How Money Works                |
++-----------------------------+--------------------------------+
 '''
