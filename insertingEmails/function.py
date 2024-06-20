@@ -44,7 +44,6 @@ def listOfIDS(connection = main_connection):
 def removeAfterPhrase(text, stopwords = stopwords):
     base_script = text
     for i in stopwords:
-        print("curr stopword:", i)
         base_script = base_script.split(i)[0]
     return base_script
 

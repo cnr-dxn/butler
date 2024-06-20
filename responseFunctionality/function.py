@@ -3,6 +3,7 @@ import os
 import sys
 from typing import *
 import datetime
+import pytz
 from bs4 import BeautifulSoup
 from openai import OpenAI # type: ignore
 import boto3
@@ -13,17 +14,31 @@ from config import *
 from MainFunctions import *
 
 #-------------------------------------------------------------------------------------------------
+# Other Funcitons
+def getCurrentDayAndDate():
+    mst = pytz.timezone('US/Mountain')
+    now = datetime.datetime.now(tz=mst)
+    day_of_week = now.strftime("%A")
+    day = now.day
+    suffix = "th" if 4 <= day <= 20 or 24 <= day <= 30 else ["st", "nd", "rd"][day % 10 - 1]
+    date_with_suffix = f"{day}{suffix}"
+    return (day_of_week, date_with_suffix)
+#-------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------
 # Direct OpenAI Functions
 def synthesizeSpeech(text, output_file):
     # Initialize a session using Amazon Polly
-    polly = boto3.openai_client('polly')
+    text = "<speak>\n" + text + "\n</speak>"
+    polly = boto3.client('polly')
 
     # Synthesize speech using Polly
     response = polly.synthesize_speech(
         Text=text,
-        OutputFormat='mp3',
-        VoiceId="Matthew",
-        Engine="neural"
+        OutputFormat = 'mp3',
+        VoiceId = "Matthew",
+        TextType = 'ssml',
+        Engine = "neural"
     )
 
     # Save the audio stream returned by Amazon Polly to an MP3 file
@@ -71,8 +86,9 @@ def summarizeNewslettersWithSystem(input_script, tokens = max_assistant_answer_t
     return thread, run
 
 def createGreeting():
+    curr_day, curr_date = getCurrentDayAndDate()
     thread = openai_client.beta.threads.create()
-    run = submitMessage(greeter_id, thread, "go")
+    run = submitMessage(greeter_id, thread, f"It's {curr_day} the {curr_date}")
     return thread, run
 
 
@@ -89,8 +105,8 @@ def retrieveSummary(raw_input: str, real: bool = False) -> str:
         run1 = waitOnRun(run1, thread1)
         return extractMessage(getResponse(thread1)).replace("Summary:\n", "")
 
-def retrieveGreeting(real: bool = False):
-    if ~real:
+def retrieveGreeting(use_tokens: bool = False):
+    if not use_tokens:
         print("not real")
         return "Good morning. It's whatever day it is. Let's dive into whatever we're going to dive into."
     else:
@@ -137,8 +153,7 @@ def mainLoop():
     No new messages from Connor Dixon recently
     Have an excellent day sir!
     '''
-    print(selectMailBySender("news@compoundeddaily.com"))
-    print(retrieveGreeting())
+    synthesizeSpeech(retrieveGreeting(), "hello.mp3")
 
 '''
 +-----------------------------+
