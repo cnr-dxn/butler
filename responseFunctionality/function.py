@@ -141,5 +141,11 @@ def mainLoop():
     print(retrieveGreeting())
 
 '''
-Could not process parameters: str(news@compoundeddaily.com), it must be of type list, tuple or dict
++-----------------------------+
+| sender                      |
++-----------------------------+
+| richard@radiofreemobile.com |
+| connorddixon@gmail.com      |
+| news@compoundeddaily.com    |
++-----------------------------+
 '''

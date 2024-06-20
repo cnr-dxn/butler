@@ -41,20 +41,25 @@ def listOfIDS(connection = main_connection):
 #-------------------------------------------------------------------------------------------------
 # Email Functions
 
-def removeAfterPhrase(text, phrase):
-    return text.split(phrase)[0]
+def removeAfterPhrase(text, stopwords = stopwords):
+    base_script = text
+    for i in stopwords:
+        print("curr stopword:", i)
+        base_script = base_script.split(i)[0]
+    return base_script
 
 def extractTextFromHtml(html_content):
     # before_unicode = BeautifulSoup(html_content, 'html.parser').get_text(separator=' ', strip=True)
     # return removeUnicode(before_unicode)
-    return removeAfterPhrase(
+    baseAnswer = (
         BeautifulSoup(html_content, 'html.parser')
         .get_text(separator=' ', strip=True)
         .encode('ascii', 'ignore').decode()
         .replace("   ", "")
-        .replace(" View Email in Browser ", ""),
-        "Enjoy early access to the latest How Money Works"
+        .replace(" View Email in Browser ", "")
     )
+
+    return removeAfterPhrase(baseAnswer)
 
 def extractAndInsertEmails(emails, source = "Default"):
     atLeastOneEmail = False
